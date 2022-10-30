@@ -1,13 +1,12 @@
 from flask import g
 from flask import request
 
-from .utils import _geo_context_processor
-
-from .config import IP_DATABASE_SOURCE
-from .config import IP_DATABASE_PATH
-from .timezone import timezone_map
-from .geo import Geo
 from . import ip_database
+from .config import IP_DATABASE_PATH
+from .config import IP_DATABASE_SOURCE
+from .geo import Geo
+from .timezone import timezone_map
+from .utils import _geo_context_processor
 
 
 class GeoManager:
@@ -49,8 +48,10 @@ class GeoManager:
 
         (country_symbol, country_name) = self.ipdb.get(ip)
         timezone = timezone_map[country_symbol]
-        geo = Geo(ip=ip,
-                  country_symbol=country_symbol,
-                  country_name=country_name,
-                  timezone=timezone)
-        g._load_geo = geo
+        geo = Geo(
+            ip=ip,
+            country_symbol=country_symbol,
+            country_name=country_name,
+            timezone=timezone,
+        )
+        g._loaded_geo = geo

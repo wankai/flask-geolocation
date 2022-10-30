@@ -1,10 +1,12 @@
 import os
 from ipaddress import ip_address
 
+
 def from_source(source: str):
-    if source == 'maxmind':
+    if source == "maxmind":
         return MaxmindDatabase()
     raise Exception("ip source not supported")
+
 
 class IPDatabase:
     def __init__(self):
@@ -18,8 +20,10 @@ class IPDatabase:
     all three elements in tuple is None if can't find
     country info for this IP
     """
+
     def get(self, ip: str):
         return None
+
 
 class MaxmindDatabase(IPDatabase):
     def __init__(self):
@@ -43,7 +47,7 @@ class MaxmindDatabase(IPDatabase):
                 line = fp.readline()
                 if not line:
                     break
-                arr = line.strip().split(',')
+                arr = line.strip().split(",")
                 if len(arr) != 7:
                     continue
                 if arr[0] == "geoname_id":
@@ -60,12 +64,12 @@ class MaxmindDatabase(IPDatabase):
                 line = fp.readline()
                 if not line:
                     break
-                arr = line.strip().split(',')
+                arr = line.strip().split(",")
                 if len(arr) != 6:
                     continue
-                if arr[0] == 'network':
+                if arr[0] == "network":
                     continue
-                ip_arr = arr[0].split('/')
+                ip_arr = arr[0].split("/")
                 if len(ip_arr) != 2:
                     continue
                 if not arr[1]:
@@ -76,7 +80,7 @@ class MaxmindDatabase(IPDatabase):
                 code = int(arr[1])
                 pairs.append((mask, address, code))
 
-        pairs.sort(key = lambda x: x[0])
+        pairs.sort(key=lambda x: x[0])
 
         group_pairs = []
         last_index = -1
@@ -90,7 +94,6 @@ class MaxmindDatabase(IPDatabase):
 
         if group_single:
             group_pairs.append(group_single)
-
 
         for single in group_pairs:
             address_set = {}
@@ -117,13 +120,13 @@ def _find_latest_database(path):
     items = map(lambda x: (os.path.getmtime(x), x), all_dir)
     return max(items)[1]
 
+
 def _get_code_file(path):
     return path + "/GeoLite2-Country-Locations-en.csv"
 
+
 def _get_ip_file(path):
     return path + "/GeoLite2-Country-Blocks-IPv4.csv"
-
-
 
 
 _mask_map = {
@@ -160,4 +163,3 @@ _mask_map = {
     1: 0x80000000,
     0: 0x00000000,
 }
-

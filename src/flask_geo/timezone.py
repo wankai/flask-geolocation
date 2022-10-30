@@ -5,5 +5,5 @@ timezone_map = {
     "US": "UTC-4",
     "UK": "UTC+0",
     "CA": "UTC-4",
-    "IN": "UTC+5:30"
+    "IN": "UTC+5:30",
 }
