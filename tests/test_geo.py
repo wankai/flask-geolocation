@@ -4,18 +4,18 @@ import unittest
 
 from flask import Flask
 from flask import render_template
-from flask_geo import current_geo
-from flask_geo import GeoManager
-from flask_geo.__about__ import __author__
-from flask_geo.__about__ import __author_email__
-from flask_geo.__about__ import __copyright__
-from flask_geo.__about__ import __description__
-from flask_geo.__about__ import __license__
-from flask_geo.__about__ import __maintainer__
-from flask_geo.__about__ import __title__
-from flask_geo.__about__ import __url__
-from flask_geo.__about__ import __version__
-from flask_geo.__about__ import __version_info__
+from flask_geolocation import current_geo
+from flask_geolocation import GeoManager
+from flask_geolocation.__about__ import __author__
+from flask_geolocation.__about__ import __author_email__
+from flask_geolocation.__about__ import __copyright__
+from flask_geolocation.__about__ import __description__
+from flask_geolocation.__about__ import __license__
+from flask_geolocation.__about__ import __maintainer__
+from flask_geolocation.__about__ import __title__
+from flask_geolocation.__about__ import __url__
+from flask_geolocation.__about__ import __version__
+from flask_geolocation.__about__ import __version_info__
 from semantic_version import Version
 
 sys_version = Version(

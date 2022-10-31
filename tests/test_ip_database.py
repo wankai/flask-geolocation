@@ -1,7 +1,7 @@
 import unittest
 
-from flask_geo import config
-from flask_geo import ip_database
+from flask_geolocation import config
+from flask_geolocation import ip_database
 
 
 class TestMaxmindDatabase(unittest.TestCase):
