@@ -3,6 +3,7 @@ import unittest
 from flask_geo import config
 from flask_geo import ip_database
 
+
 class TestMaxmindDatabase(unittest.TestCase):
     def setUp(self):
         self.db = ip_database.from_source(config.IP_DATABASE_SOURCE)

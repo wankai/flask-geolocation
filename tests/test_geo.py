@@ -1,7 +1,9 @@
+import os
 import sys
 import unittest
 
 from flask import Flask
+from flask import render_template
 from flask_geo import current_geo
 from flask_geo import GeoManager
 from flask_geo.__about__ import __author__
@@ -54,19 +56,125 @@ class InitializationTestCase(unittest.TestCase):
         self.assertIsInstance(geo_manager, GeoManager)
 
 
-class IpTestCase(unittest.TestCase):
+class NoCallbackTestCase(unittest.TestCase):
     def setUp(self):
-        self.app = Flask(__name__)
+        template_abs = os.path.abspath("tests/templates")
+        self.app = Flask(__name__, template_folder=template_abs)
         self.app.config["SECRET_KEY"] = "1234"
+
+        self.environ_base = {"REMOTE_ADDR": "154.204.60.219"}
 
         self.geo_manager = GeoManager()
         self.geo_manager.init_app(self.app)
 
         @self.app.route("/")
         def index():
-            return current_geo.country_symbol
+            return (
+                current_geo.country_symbol
+                + ", "
+                + current_geo.country_name
+                + ", "
+                + current_geo.timezone
+            )
 
-    def test_ip_with_request(self):
+        @self.app.route("/template")
+        def template():
+            return render_template("country.html")
+
+    def test_global_with_request(self):
         with self.app.test_client() as c:
-            result = c.get("/", environ_base={"REMOTE_ADDR": "154.204.60.219"})
-            self.assertEqual("HK", result.data.decode("utf-8"))
+            result = c.get("/", environ_base=self.environ_base)
+            expect = "HK, Hong Kong, UTC+8"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+    def test_template_context_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/template", environ_base=self.environ_base)
+            expect = "HK, Hong Kong, UTC+8"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+
+class IpCallbackTestCase(unittest.TestCase):
+    def setUp(self):
+        template_abs = os.path.abspath("tests/templates")
+        self.app = Flask(__name__, template_folder=template_abs)
+        self.app.config["SECRET_KEY"] = "1234"
+
+        self.environ_base = {"REMOTE_ADDR": "154.204.60.219"}
+
+        self.geo_manager = GeoManager()
+        self.geo_manager.init_app(self.app)
+
+        @self.geo_manager.use_ip
+        def ip_callback():
+            """This is a ip address in Singapore"""
+            return "43.156.97.49"
+
+        @self.app.route("/")
+        def index():
+            return (
+                current_geo.country_symbol
+                + ", "
+                + current_geo.country_name
+                + ", "
+                + current_geo.timezone
+            )
+
+        @self.app.route("/template")
+        def template():
+            return render_template("country.html")
+
+    def test_global_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/", environ_base=self.environ_base)
+            expect = "SG, Singapore, UTC+8"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+    def test_template_context_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/template", environ_base=self.environ_base)
+            expect = "SG, Singapore, UTC+8"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+
+class TimezoneCallbackTestCase(unittest.TestCase):
+    def setUp(self):
+        template_abs = os.path.abspath("tests/templates")
+        self.app = Flask(__name__, template_folder=template_abs)
+        self.app.config["SECRET_KEY"] = "1234"
+
+        self.environ_base = {"REMOTE_ADDR": "154.204.60.219"}
+
+        self.geo_manager = GeoManager()
+        self.geo_manager.init_app(self.app)
+
+        @self.geo_manager.use_timezone
+        def timezone_callback():
+            """change Hong Kong timezone to UTC-4"""
+            return "UTC-4"
+
+        @self.app.route("/")
+        def index():
+            return (
+                current_geo.country_symbol
+                + ", "
+                + current_geo.country_name
+                + ", "
+                + current_geo.timezone
+            )
+
+        @self.app.route("/template")
+        def template():
+            return render_template("country.html")
+
+    def test_global_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/", environ_base=self.environ_base)
+            expect = "HK, Hong Kong, UTC-4"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+    def test_template_context_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/template", environ_base=self.environ_base)
+            expect = "HK, Hong Kong, UTC-4"
+            self.assertEqual(expect, result.data.decode("utf-8"))
