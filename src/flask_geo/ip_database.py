@@ -8,6 +8,7 @@ def from_source(source: str):
     raise Exception("ip source not supported")
 
 
+"""
 class IPDatabase:
     def __init__(self):
         return None
@@ -15,17 +16,16 @@ class IPDatabase:
     def load(self, path):
         return None
 
-    """
     return (country_code, country_symbol, country_name)
     all three elements in tuple is None if can't find
     country info for this IP
-    """
 
     def get(self, ip: str):
         return None
+"""
 
 
-class MaxmindDatabase(IPDatabase):
+class MaxmindDatabase:
     def __init__(self):
         self._addresses = {}
         self._codes = {}
@@ -57,8 +57,8 @@ class MaxmindDatabase(IPDatabase):
 
                 self._codes[int(arr[0])] = (arr[4], arr[5].strip('"'))
 
-    def _load_ip_dict(self, path):
-        pairs = []
+    def __load_ip_items(self, path):
+        items = []
         with open(path) as fp:
             while True:
                 line = fp.readline()
@@ -78,24 +78,33 @@ class MaxmindDatabase(IPDatabase):
                 mask = int(ip_arr[1])
                 address = int(ip_address(ip_arr[0]))
                 code = int(arr[1])
-                pairs.append((mask, address, code))
+                items.append((mask, address, code))
 
-        pairs.sort(key=lambda x: x[0])
+        return items
 
-        group_pairs = []
+    def __get_grouped_items(self, items):
+        grouped_items = []
         last_index = -1
         group_single = []
-        for mask, address, code in pairs:
-            if last_index > -1 and mask != pairs[last_index][0]:
-                group_pairs.append(group_single.copy())
+        for mask, address, code in items:
+            if last_index > -1 and mask != items[last_index][0]:
+                grouped_items.append(group_single.copy())
                 group_single.clear()
             group_single.append((mask, address, code))
             last_index = last_index + 1
 
         if group_single:
-            group_pairs.append(group_single)
+            grouped_items.append(group_single)
 
-        for single in group_pairs:
+        return grouped_items
+
+    def _load_ip_dict(self, path):
+        items = self.__load_ip_items(path)
+        items.sort(key=lambda x: x[0])
+
+        grouped_items = self.__get_grouped_items(items)
+
+        for single in grouped_items:
             address_set = {}
             if single:
                 mask = single[0][0]
