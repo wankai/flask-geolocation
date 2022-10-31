@@ -2,27 +2,28 @@ from flask import g
 from flask import request
 
 from . import ip_database
-from .config import IP_DATABASE_PATH
-from .config import IP_DATABASE_SOURCE
 from .geo import Geo
 from .timezone import timezone_map
 from .utils import _geo_context_processor
 
 
 class GeoManager:
-    def __init__(self, ipdb=None, app=None, add_context_processor=True):
+    def __init__(self, ip_data_path=None):
+        self.ip_data_path = ip_data_path
+        if self.ip_data_path is None:
+            self.ip_data_path = "maxmind/data"
+
+        self.ip_data_source = "maxmind"
+        self.ip_db = None
+
         self._ip_callback = None
         self._timezone_callback = None
-        if ipdb is None:
-            self.ipdb = ip_database.from_source(IP_DATABASE_SOURCE)
-            self.ipdb.load(IP_DATABASE_PATH)
-        else:
-            self.ipdb = ipdb
-
-        if app is not None:
-            self.init_app(app, add_context_processor)
 
     def init_app(self, app, add_context_processor=True):
+        if self.ip_db is None:
+            self.ip_db = ip_database.from_source(self.ip_data_source)
+            self.ip_db.load(self.ip_data_path)
+
         app.geo_manager = self
         if add_context_processor:
             app.context_processor(_geo_context_processor)
@@ -55,7 +56,7 @@ class GeoManager:
             else:
                 ip = request.remote_addr
 
-        (country_symbol, country_name) = self.ipdb.get(ip)
+        (country_symbol, country_name) = self.ip_db.get(ip)
 
         timezone = timezone_map[country_symbol]
         if self._timezone_callback:

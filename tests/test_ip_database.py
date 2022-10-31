@@ -1,13 +1,12 @@
 import unittest
 
-from flask_geolocation import config
 from flask_geolocation import ip_database
 
 
 class TestMaxmindDatabase(unittest.TestCase):
     def setUp(self):
-        self.db = ip_database.from_source(config.IP_DATABASE_SOURCE)
-        self.db.load("data")
+        self.db = ip_database.from_source("maxmind")
+        self.db.load("tests/data")
 
     def test_china(self):
         info = self.db.get("121.34.22.206")

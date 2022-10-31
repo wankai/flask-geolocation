@@ -47,12 +47,12 @@ class InitializationTestCase(unittest.TestCase):
         self.app.config["SECRET_KEY"] = "1234"
 
     def test_init_app(self):
-        geo_manager = GeoManager()
-        geo_manager.init_app(self.app, add_context_processor=True)
+        geo_manager = GeoManager("wrong_path")
         self.assertIsInstance(geo_manager, GeoManager)
 
-    def test_class_init(self):
-        geo_manager = GeoManager(self.app, add_context_processor=True)
+    def test_init_with_ip_data_path(self):
+        geo_manager = GeoManager("tests/data")
+        geo_manager.init_app(self.app, add_context_processor=True)
         self.assertIsInstance(geo_manager, GeoManager)
 
 
@@ -64,7 +64,8 @@ class NoCallbackTestCase(unittest.TestCase):
 
         self.environ_base = {"REMOTE_ADDR": "154.204.60.219"}
 
-        self.geo_manager = GeoManager()
+        self.geo_manager = GeoManager("tests/data")
+
         self.geo_manager.init_app(self.app)
 
         @self.app.route("/")
@@ -102,7 +103,7 @@ class IpCallbackTestCase(unittest.TestCase):
 
         self.environ_base = {"REMOTE_ADDR": "154.204.60.219"}
 
-        self.geo_manager = GeoManager()
+        self.geo_manager = GeoManager("tests/data")
         self.geo_manager.init_app(self.app)
 
         @self.geo_manager.use_ip
@@ -145,7 +146,7 @@ class TimezoneCallbackTestCase(unittest.TestCase):
 
         self.environ_base = {"REMOTE_ADDR": "154.204.60.219"}
 
-        self.geo_manager = GeoManager()
+        self.geo_manager = GeoManager("tests/data")
         self.geo_manager.init_app(self.app)
 
         @self.geo_manager.use_timezone

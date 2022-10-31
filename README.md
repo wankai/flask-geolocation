@@ -1,5 +1,6 @@
 # Flask-Geolocation
-Flask-Geolocation aims to help get geolocation informaton for Flask app
+Flask-Geolocation aims to help get geolocation informaton for Flask app.
+It only supports Maxmind IP Database now.
 
 # Installation
 install the extension with pip
@@ -12,7 +13,8 @@ initialization
 ```python
 from flask-geolocation import GeoManager
 
-geo_manager = GeoManager()
+# ip_data_path can be a relative path to your project root.
+geo_manager = GeoManager("ip_data_path")
 geo_manager.init_app(app)
 ```
 
