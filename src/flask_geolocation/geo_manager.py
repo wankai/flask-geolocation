@@ -18,6 +18,7 @@ class GeoManager:
 
         self._ip_callback = None
         self._timezone_callback = None
+        self._default_timezone_callback = None
 
     def init_app(self, app, add_context_processor=True):
         if self.ip_db is None:
@@ -45,6 +46,14 @@ class GeoManager:
     def timezone_callback(self):
         return self._timezone_callback
 
+    def use_default_timezone(self, callback):
+        self._default_timezone_callback = callback
+        return self.default_timezone_callback
+
+    @property
+    def default_timezone_callback(self):
+        return self._default_timezone_callback
+
     def _load_geo(self):
         """construct geo info from ip address"""
         ip = None
@@ -58,11 +67,14 @@ class GeoManager:
 
         (country_symbol, country_name) = self.ip_db.get(ip)
 
-        timezone = timezone_map[country_symbol]
+        timezone = timezone_map.get(country_symbol)
         if self._timezone_callback:
             tz = self._timezone_callback()
             if tz is not None:
                 timezone = tz
+
+        if timezone is None and self._default_timezone_callback is not None:
+            timezone = self._default_timezone_callback()
 
         geo = Geo(
             ip=ip,

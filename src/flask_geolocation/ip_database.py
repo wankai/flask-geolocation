@@ -5,24 +5,7 @@ from ipaddress import ip_address
 def from_source(source: str):
     if source == "maxmind":
         return MaxmindDatabase()
-    raise Exception("ip source not supported")
-
-
-"""
-class IPDatabase:
-    def __init__(self):
-        return None
-
-    def load(self, path):
-        return None
-
-    return (country_code, country_symbol, country_name)
-    all three elements in tuple is None if can't find
-    country info for this IP
-
-    def get(self, ip: str):
-        return None
-"""
+    raise Exception(source + " is an unsupported ip data source")
 
 
 class MaxmindDatabase:
@@ -120,7 +103,8 @@ class MaxmindDatabase:
             mask = _mask_map[mask_digit_num]
             ip_after_mask = ip_int & mask
             if ip_after_mask in address_map:
-                return address_map[ip_after_mask]
+                return address_map.get(ip_after_mask)
+        return (None, None)
 
 
 def _find_latest_database(path):
@@ -139,6 +123,7 @@ def _get_ip_file(path):
 
 
 _mask_map = {
+    32: 0xFFFFFFFF,
     31: 0xFFFFFFFE,
     30: 0xFFFFFFFC,
     29: 0xFFFFFFF8,

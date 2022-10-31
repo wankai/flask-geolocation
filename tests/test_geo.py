@@ -56,6 +56,21 @@ class InitializationTestCase(unittest.TestCase):
         self.assertIsInstance(geo_manager, GeoManager)
 
 
+class InitializationRaisesTestCase(unittest.TestCase):
+    def setUp(self):
+        self.app = Flask(__name__)
+        self.app.config["SECRET_KEY"] = "1234"
+
+    def test_init_with_unsupported_source(self):
+        geo_manager = GeoManager()
+        geo_manager.ip_data_source = "ip-source"
+        with self.assertRaises(Exception) as cm:
+            geo_manager.init_app(self.app)
+
+        expected_msg = "ip-source is an unsupported ip data source"
+        self.assertEqual(expected_msg, str(cm.exception))
+
+
 class NoCallbackTestCase(unittest.TestCase):
     def setUp(self):
         template_abs = os.path.abspath("tests/templates")
@@ -135,6 +150,81 @@ class IpCallbackTestCase(unittest.TestCase):
         with self.app.test_client() as c:
             result = c.get("/template", environ_base=self.environ_base)
             expect = "SG, Singapore, UTC+8"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+
+"""
+when we can't find out timezone, we get None, not an Exception
+"""
+
+
+class NoneTimezoneTestCase(unittest.TestCase):
+    def setUp(self):
+        template_abs = os.path.abspath("tests/templates")
+        self.app = Flask(__name__, template_folder=template_abs)
+        self.app.config["SECRET_KEY"] = "1234"
+
+        self.environ_base = {"REMOTE_ADDR": "1.1.1.1"}
+
+        self.geo_manager = GeoManager("tests/data")
+        self.geo_manager.init_app(self.app)
+
+        @self.app.route("/")
+        def index():
+            def str_or_none(s):
+                if not s:
+                    return "none"
+                return s
+
+            return (
+                str_or_none(current_geo.country_symbol)
+                + ", "
+                + str_or_none(current_geo.country_name)
+                + ", "
+                + str_or_none(current_geo.timezone)
+            )
+
+    def test_global_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/", environ_base=self.environ_base)
+            expect = "none, none, none"
+            self.assertEqual(expect, result.data.decode("utf-8"))
+
+
+class DefaultTimezoneCallbackTestCase(unittest.TestCase):
+    def setUp(self):
+        template_abs = os.path.abspath("tests/templates")
+        self.app = Flask(__name__, template_folder=template_abs)
+        self.app.config["SECRET_KEY"] = "1234"
+
+        self.environ_base = {"REMOTE_ADDR": "1.1.1.1"}
+
+        self.geo_manager = GeoManager("tests/data")
+        self.geo_manager.init_app(self.app)
+
+        @self.geo_manager.use_default_timezone
+        def default_timezone():
+            return "UTC+4"
+
+        @self.app.route("/")
+        def index():
+            def str_or_none(s):
+                if not s:
+                    return "none"
+                return s
+
+            return (
+                str_or_none(current_geo.country_symbol)
+                + ", "
+                + str_or_none(current_geo.country_name)
+                + ", "
+                + str_or_none(current_geo.timezone)
+            )
+
+    def test_global_with_request(self):
+        with self.app.test_client() as c:
+            result = c.get("/", environ_base=self.environ_base)
+            expect = "none, none, UTC+4"
             self.assertEqual(expect, result.data.decode("utf-8"))
 
 
